@@ -1,0 +1,77 @@
+import numpy as np
+
+
+def elmtrain(P,T,N,TF,TYPE):
+    #Input
+    #P - Input Matrix of Training Set  (R*Q)
+    #T - Output Matrix of Training Set (S*Q)
+    #N - Number of Hidden Neurons (default = Q)
+    #TF - Transfer Function:
+        #'sig' for Sigmoidal function(default)
+        #'sin' for Sine function
+        #'hardlim' for Hardlim function
+    #TYPE - Regression (0,default) or Classification (1)
+
+    #Output
+    #IW - Input Weight Matrix (N*R)
+    #B - Bias Matrix  (N*1)
+    #LW - Layer Weight Matrix (N*S)
+
+    #Example
+    #Regression:
+    #[IW,B,LW,TF,TYPE] = elmtrain(P,T,20,'sig',0)
+    #Y = elmtrain(P,IW,B,LW,TF,TYPE)
+    #Classification:
+    #[IW,B,LW,TF,TYPE] = elmtrain(P,T,20,'sig',1)
+    #Y = elmtrain(P,IW,B,LW,TF,TYPE)
+    R,Q = P.shape
+    if TYPE ==1:
+        MAX = np.max(T)
+        T = (np.arange(MAX + 1) == data[:, None]).astype(int)
+    S,Q = T.shape
+    IW = np.random.rand(N, R) * 2 - 1
+    B = np.random.rand(N, 1)
+    BiasMatrix = np.tile(B, (1, Q))
+    tempH = np.mat(IW) * np.mat(P) + np.mat(BiasMatrix)
+    tempH = np.array(tempH, dtype=np.float64)
+    if TF =='sig':
+        H = 1 / (1 + np.exp(-tempH))
+    elif TF =='sin':
+        H = np.sin(tempH)
+    elif TF =='hardlim':
+        H = np.zeros((tempH.shape[0], tempH.shape[1]))
+        for i in range(tempH.shape[0]):
+            for j in range(tempH.shape[1]):
+                if tempH[i, j] < 0:
+                    H[i, j] = 0
+                elif tempH[i, j] >= 0:
+                    H[i, j] = 1
+    LW = np.mat(np.linalg.pinv(H.T)) * np.mat(T.T)
+    return IW, B, LW, TF, TYPE
+
+
+def elmpredict(P, IW, B, LW, TF, TYPE):
+    import numpy as np
+    Q = P.shape[1]
+    BiasMatrix = np.tile(B,(1,Q))
+    tempH = np.mat(IW) * np.mat(P) + np.mat(BiasMatrix)
+    tempH = np.array(tempH, dtype=np.float64)
+    if TF =='sig':
+        H = 1/(1 + np.exp(-tempH))
+    elif TF =='sin':
+        H = np.sin(tempH)
+    elif TF =='hardlim':
+        H = np.zeros((tempH.shape[0], tempH.shape[1]))
+        for i in range(tempH.shape[0]):
+            for j in range(tempH.shape[1]):
+                if tempH[i, j] < 0:
+                    H[i, j] = 0
+                elif tempH[i, j] >= 0:
+                    H[i, j] = 1
+    Y = (np.mat(H.T) * np.mat(LW)).T
+    if TYPE==1:
+        index = np.zeros((1, Y.shape[1]))
+        for i in range(Y.shape[1]):
+            index[0,i] = np.argmax(Y[:, i])
+        Y = index
+    return Y
